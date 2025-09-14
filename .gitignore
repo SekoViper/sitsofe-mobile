@@ -1,36 +1,47 @@
-# Gradle
+# Gradle & build outputs
 .gradle/
 **/build/
 local.properties
 
-# Android Studio / IntelliJ
+# IDE
 .idea/
 *.iml
 *.ipr
 *.iws
 
-# Signing / secrets (never commit)
+# Signing / secrets
 *.jks
 *.keystore
 keystore.properties
 google-services.json
 *.pem
 
-# Outputs
+# Artifacts / binaries
 *.apk
 *.aab
+*.aar
+*.so
 
-# NDK / CMake
+# Archives & media (keep out of git; use LFS or store elsewhere)
+*.zip
+*.rar
+*.7z
+*.tar
+*.tar.gz
+*.tgz
+*.mp4
+*.mov
+*.avi
+
+# Native / NDK
 .externalNativeBuild/
 obj/
 
-# Captures / logs
+# Misc
 captures/
 *.log
-
-# Fastlane
-fastlane/report.xml
-fastlane/Preview.html
-
-# Misc
 .DS_Store
+cat >> .gitignore <<'EOF'
+# Heap dumps
+*.hprof
+EOF
