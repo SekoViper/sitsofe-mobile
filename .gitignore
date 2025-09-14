@@ -1,0 +1,36 @@
+# Gradle
+.gradle/
+**/build/
+local.properties
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Signing / secrets (never commit)
+*.jks
+*.keystore
+keystore.properties
+google-services.json
+*.pem
+
+# Outputs
+*.apk
+*.aab
+
+# NDK / CMake
+.externalNativeBuild/
+obj/
+
+# Captures / logs
+captures/
+*.log
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+
+# Misc
+.DS_Store

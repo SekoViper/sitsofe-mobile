@@ -1,0 +1,30 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+
+    <application
+            android:name=".SitsofeApp"
+            android:allowBackup="true"
+            android:label="Sitsofe Scanner"
+            android:icon="@mipmap/ic_launcher"
+            android:roundIcon="@mipmap/ic_launcher"
+            android:supportsRtl="true"
+            android:theme="@style/Theme.Material3.DayNight.NoActionBar">
+
+        <activity android:name=".MainActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Optional manifest receiver: will also receive scans when app is in foreground/background -->
+        <receiver
+                android:name=".barcode.ScanBroadcastReceiver"
+                android:exported="true">
+            <intent-filter>
+                <action android:name="android.scanner.scan" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

@@ -1,0 +1,2 @@
+-keep class recieptservice.com.recieptservice.** { *; }
+-keep class com.sitsofe.scanner.** { *; }
