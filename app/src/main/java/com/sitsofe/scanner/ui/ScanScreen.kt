@@ -54,43 +54,15 @@ fun ScanScreen() {
     }
 
     Column(Modifier.padding(16.dp)) {
-        Text("Sitsofe Scanner Starter v1.3", style = MaterialTheme.typography.titleLarge)
+        Text("Sitsofe Scanner v1.3", style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(12.dp))
 
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = { mode = ScannerMode.AUTO }) { Text("Auto") }
-            Button(onClick = { mode = ScannerMode.BROADCAST }) { Text("Broadcast") }
-            Button(onClick = { mode = ScannerMode.KEYBOARD }) { Text("Keyboard") }
-        }
-
         Spacer(Modifier.height(12.dp))
-        Button(onClick = { showCamera = true }) { Text("Camera Scan") }
+        Button(onClick = { showCamera = true }) { Text("Scan") }
 
         Spacer(Modifier.height(16.dp))
         Text("Last scan:")
         Text(lastScan, style = MaterialTheme.typography.headlineSmall)
-
-        if (mode == ScannerMode.KEYBOARD) {
-            Spacer(Modifier.height(16.dp))
-            KeyboardInput(provider)
-        }
     }
 }
 
-@Composable
-private fun KeyboardInput(provider: ScannerProvider) {
-    val wedge = provider as? KeyboardWedgeScanner ?: return
-    var text by remember { mutableStateOf("") }
-    OutlinedTextField(
-        value = text,
-        onValueChange = { text = it },
-        label = { Text("Focus here and scan, or type then press SEND") },
-        singleLine = true,
-        modifier = Modifier.fillMaxWidth()
-    )
-    Spacer(Modifier.height(8.dp))
-    Button(onClick = {
-        val v = text.trim()
-        if (v.isNotEmpty()) { wedge.onSubmit(v); text = "" }
-    }) { Text("Send") }
-}
