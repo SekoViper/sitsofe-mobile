@@ -56,5 +56,4 @@ object ServiceLocator {
 
     fun db(ctx: Context): AppDb = dbRef ?: AppDb.get(ctx).also { dbRef = it }
 
-    fun productRepository(ctx: Context) = ProductRepository(api(), db(ctx).productDao())
 }
