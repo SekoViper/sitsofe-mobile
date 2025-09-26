@@ -3,7 +3,6 @@ package com.sitsofe.scanner.di
 import android.content.Context
 import com.sitsofe.scanner.BuildConfig
 import com.sitsofe.scanner.core.auth.Auth
-import com.sitsofe.scanner.core.data.ProductRepository
 import com.sitsofe.scanner.core.db.AppDb
 import com.sitsofe.scanner.core.network.Api
 import okhttp3.Interceptor
@@ -20,23 +19,30 @@ object ServiceLocator {
     @Volatile private var dbRef: AppDb? = null
 
     private fun http(): OkHttpClient {
-        val auth = Interceptor { chain ->
-            val req = chain.request().newBuilder()
-                .addHeader("Accept", "application/json")
-                .apply {
-                    Auth.token?.let { header("Authorization", "Bearer $it") }
-                }
-                .build()
+        val authAndTenant = Interceptor { chain ->
+            val b = chain.request().newBuilder()
+                .header("Accept", "application/json")
+
+            // ✅ Auth header
+            Auth.token?.let { b.header("Authorization", "Bearer $it") }
+
+            // ✅ Multi-tenant headers (required by your backend)
+            Auth.tenantId?.let { b.header("X-Tenant-Id", it) }
+            Auth.subsidiaryId?.let { b.header("X-Subsidiary-Id", it) }
+
+            val req = b.build()
             Timber.tag("HTTP").d("→ %s %s", req.method, req.url)
             chain.proceed(req)
         }
 
         val httpLogger = HttpLoggingInterceptor { msg ->
-            Timber.tag("HTTP").d(msg)   // logs request/response lines + body
-        }.apply { level = HttpLoggingInterceptor.Level.BODY }
+            Timber.tag("HTTP").d(msg)
+        }.apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
 
         return OkHttpClient.Builder()
-            .addInterceptor(auth)
+            .addInterceptor(authAndTenant)
             .addInterceptor(httpLogger)
             .connectTimeout(20, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
@@ -55,5 +61,4 @@ object ServiceLocator {
     fun api(): Api = apiRef ?: retrofit().create(Api::class.java).also { apiRef = it }
 
     fun db(ctx: Context): AppDb = dbRef ?: AppDb.get(ctx).also { dbRef = it }
-
 }
