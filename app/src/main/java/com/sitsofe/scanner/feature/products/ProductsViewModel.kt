@@ -13,7 +13,7 @@ class ProductsViewModel(
     private val repo: ProductRepository
 ) : ViewModel() {
 
-    // search
+    // ───── search ──────────────────────────────────────────────────────────────
     private val queryFlow = MutableStateFlow("")
     var query: String = ""
         private set
@@ -22,15 +22,20 @@ class ProductsViewModel(
         queryFlow.value = q
     }
 
-    // paging
+    // ───── paging ──────────────────────────────────────────────────────────────
     val items: Flow<PagingData<ProductEntity>> =
         queryFlow.debounce(200)
             .flatMapLatest { repo.pager(it) }
             .cachedIn(viewModelScope)
 
-    // cart
+    // ───── cart (id -> qty) ────────────────────────────────────────────────────
     private val _cart = MutableStateFlow<Map<String, Int>>(emptyMap())
     val cart: StateFlow<Map<String, Int>> = _cart
+
+    // badge count
+    val cartCount: StateFlow<Int> =
+        _cart.map { it.values.sum() }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     private fun setQty(id: String, qty: Int) {
         _cart.update { cur -> if (qty <= 0) cur - id else cur + (id to qty) }
@@ -41,8 +46,9 @@ class ProductsViewModel(
         setQty(p.id, cur + qty)
     }
     fun remove(p: ProductEntity) = add(p, -1)
+    fun clearCart() { _cart.value = emptyMap() }
 
-    // events
+    // ───── events ──────────────────────────────────────────────────────────────
     private val _events = MutableSharedFlow<String>()
     val events: SharedFlow<String> = _events
 
@@ -50,8 +56,9 @@ class ProductsViewModel(
         viewModelScope.launch { repo.initialSyncIfNeeded() }
     }
 
+    // used by scanner and manual inputs
     fun addByBarcode(raw: String) {
-        val code = raw.trim().removeSuffix("\n")
+        val code = raw.trim().removeSuffix("\n").removeSuffix("\r")
         viewModelScope.launch {
             val p = repo.findByBarcode(code)
             if (p != null) {
@@ -62,4 +69,7 @@ class ProductsViewModel(
             }
         }
     }
+
+    // Helpers for CartScreen
+    suspend fun productsByIds(ids: List<String>): List<ProductEntity> = repo.getByIds(ids)
 }

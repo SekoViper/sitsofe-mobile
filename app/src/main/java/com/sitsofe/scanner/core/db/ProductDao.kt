@@ -12,12 +12,14 @@ interface ProductDao {
     @Query("SELECT * FROM products ORDER BY name COLLATE NOCASE ASC")
     fun pagingAll(): PagingSource<Int, ProductEntity>
 
-    @Query("""
+    @Query(
+        """
         SELECT * FROM products
         WHERE name LIKE '%' || :q || '%'
            OR barcode LIKE '%' || :q || '%'
         ORDER BY name COLLATE NOCASE ASC
-    """)
+        """
+    )
     fun pagingSearch(q: String): PagingSource<Int, ProductEntity>
 
     @Query("SELECT * FROM products WHERE barcode = :barcode LIMIT 1")
@@ -29,6 +31,11 @@ interface ProductDao {
     @Query("DELETE FROM products")
     suspend fun clear()
 
+    // NEW: used by initialSyncIfNeeded to decide if a network pull is needed
     @Query("SELECT COUNT(*) FROM products")
     suspend fun count(): Int
+
+    // NEW: resolve cart lines by product IDs
+    @Query("SELECT * FROM products WHERE id IN (:ids)")
+    suspend fun getByIds(ids: List<String>): List<ProductEntity>
 }

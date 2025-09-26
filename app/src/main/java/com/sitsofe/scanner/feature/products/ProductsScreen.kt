@@ -3,13 +3,12 @@ package com.sitsofe.scanner.feature.products
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.sitsofe.scanner.core.db.ProductEntity
@@ -19,13 +18,15 @@ import com.sitsofe.scanner.ui.CameraScanScreen
 
 @Composable
 fun ProductsScreen(
+    vm: ProductsViewModel,
     onPick: (ProductEntity) -> Unit,
     outerPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     val ctx = LocalContext.current
-    val vm: ProductsViewModel = viewModel(factory = ProductsVMFactory(ctx))
+
     LaunchedEffect(Unit) { vm.initialSyncOnce() }
 
+    // Auto scanner (uses vendor broadcast if available)
     val provider = remember { ScannerFactory(ctx).create(ScannerMode.AUTO) }
     DisposableEffect(provider) {
         provider.start { code -> vm.addByBarcode(code) }
@@ -65,10 +66,7 @@ fun ProductsScreen(
                 Spacer(Modifier.height(8.dp))
                 Box(Modifier.fillMaxWidth().height(240.dp)) {
                     CameraScanScreen(
-                        onResult = { code ->
-                            vm.addByBarcode(code)
-                            cameraOpen = false
-                        },
+                        onResult = { code -> vm.addByBarcode(code) },
                         onClose = { cameraOpen = false }
                     )
                 }
@@ -77,20 +75,19 @@ fun ProductsScreen(
             Spacer(Modifier.height(8.dp))
 
             LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(0.dp),
+                modifier = Modifier.fillMaxSize()
             ) {
-                // NOTE: no paging-compose items() here. We use count + index.
-                items(lazyItems.itemCount) { index ->
-                    val p = lazyItems[index] ?: return@items
-
+                items(lazyItems.itemSnapshotList.items, key = { it.id }) { p ->
                     ListItem(
                         leadingContent = {
                             val q = cart[p.id] ?: 0
                             if (q > 0) AssistChip(onClick = {}, label = { Text("$q") })
                         },
                         headlineContent = { Text(p.name) },
-                        supportingContent = { Text("${p.categoryName} · Stock: ${p.stock}") },
+                        supportingContent = {
+                            Text("${p.categoryName ?: "Uncategorized"} · Stock: ${p.stock}")
+                        },
                         trailingContent = {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text(
