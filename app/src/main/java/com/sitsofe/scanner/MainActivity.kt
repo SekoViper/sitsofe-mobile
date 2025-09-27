@@ -12,6 +12,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.sitsofe.scanner.feature.cart.CartScreen
+import com.sitsofe.scanner.feature.checkout.CheckoutScreen
+import com.sitsofe.scanner.feature.checkout.CheckoutViewModel
 import com.sitsofe.scanner.feature.products.ProductsScreen
 import com.sitsofe.scanner.feature.products.ProductsVMFactory
 import com.sitsofe.scanner.feature.products.ProductsViewModel
@@ -27,13 +29,14 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme {
                 val nav = rememberNavController()
-                val backStackEntry by nav.currentBackStackEntryAsState()
-                val route = backStackEntry?.destination?.route ?: "products"
+                val backEntry by nav.currentBackStackEntryAsState()
+                val route = backEntry?.destination?.route ?: "products"
                 val canGoBack = nav.previousBackStackEntry != null
                 val cartCount by productsVM.cartCount.collectAsState(initial = 0)
 
                 val title = when (route) {
                     "cart" -> "Cart ($cartCount)"
+                    "checkout" -> "Complete Sales"
                     else -> "Products"
                 }
 
@@ -52,14 +55,28 @@ class MainActivity : ComponentActivity() {
                         composable("products") {
                             ProductsScreen(
                                 vm = productsVM,
-                                onPick = { /* open details if needed */ },
+                                onPick = { /* optional */ },
                                 outerPadding = padding
                             )
                         }
                         composable("cart") {
                             CartScreen(
                                 vm = productsVM,
-                                onBack = { nav.popBackStack() }
+                                onBack = { nav.popBackStack() },
+                                onProceed = { nav.navigate("checkout") }
+                            )
+                        }
+                        composable("checkout") {
+                            val vm = remember { CheckoutViewModel(this@MainActivity, productsVM) }
+                            CheckoutScreen(
+                                vm = vm,
+                                productsVM = productsVM,
+                                onClose = { nav.popBackStack() },
+                                onCompleted = {
+                                    productsVM.clearCart()
+                                    nav.popBackStack("products", inclusive = false)
+                                },
+                                outerPadding = padding
                             )
                         }
                     }
