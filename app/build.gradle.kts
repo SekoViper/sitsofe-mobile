@@ -79,6 +79,7 @@ dependencies {
     implementation ("androidx.paging:paging-compose:3.3.2")
     implementation ("androidx.compose.material3:material3:1.3.0")
     implementation ("androidx.navigation:navigation-compose:2.7.7")
+    implementation ("androidx.compose.material:material-icons-extended:<compose-version>")
 
     // Retrofit + Gson
     implementation("com.squareup.retrofit2:retrofit:2.11.0")

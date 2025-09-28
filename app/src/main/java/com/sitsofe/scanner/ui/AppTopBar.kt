@@ -19,6 +19,7 @@ fun AppTopBar(
     showBack: Boolean,
     title: String,
     cartCount: Int,
+    showCart: Boolean,
     onBack: () -> Unit,
     onCart: () -> Unit
 ) {
@@ -48,7 +49,11 @@ fun AppTopBar(
                     .padding(start = 6.dp)
             )
 
-            CartActionIcon(count = cartCount, onClick = onCart)
+            if (showCart) {
+                CartActionIcon(count = cartCount, onClick = onCart)
+            } else {
+                Spacer(Modifier.width(8.dp))
+            }
         }
     }
 }
