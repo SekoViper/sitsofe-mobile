@@ -23,14 +23,9 @@ object ServiceLocator {
             val b = chain.request().newBuilder()
                 .header("Accept", "application/json")
 
-            // Auth
             Auth.token?.let { b.header("Authorization", "Bearer $it") }
-
-            // Multi-tenant headers
             Auth.tenantId?.let { b.header("X-Tenant-Id", it) }
             Auth.subsidiaryId?.let { b.header("X-Subsidiary-Id", it) }
-
-            // User scope headers (needed by some endpoints)
             Auth.userId?.let { b.header("X-User-Id", it) }
             Auth.role?.let { b.header("X-Role", it) }
             Auth.currency?.let { b.header("X-Currency", it) }
@@ -40,9 +35,8 @@ object ServiceLocator {
             chain.proceed(req)
         }
 
-        val httpLogger = HttpLoggingInterceptor { msg ->
-            Timber.tag("HTTP").d(msg)
-        }.apply { level = HttpLoggingInterceptor.Level.BODY }
+        val httpLogger = HttpLoggingInterceptor { msg -> Timber.tag("HTTP").d(msg) }
+            .apply { level = HttpLoggingInterceptor.Level.BODY }
 
         return OkHttpClient.Builder()
             .addInterceptor(identityHeaders)
@@ -55,7 +49,7 @@ object ServiceLocator {
 
     private fun retrofit(): Retrofit =
         retrofitRef ?: Retrofit.Builder()
-            .baseUrl(BuildConfig.BASE_URL) // e.g., http://192.168.1.99:5001/api/
+            .baseUrl(BuildConfig.BASE_URL) // http://192.168.1.99:5001/api/
             .client(http())
             .addConverterFactory(GsonConverterFactory.create())
             .build()

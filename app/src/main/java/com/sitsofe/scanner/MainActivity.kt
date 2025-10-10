@@ -4,23 +4,23 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.*
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.PaddingValues
+import com.sitsofe.scanner.core.auth.Auth
+import com.sitsofe.scanner.feature.auth.LoginScreen
+import com.sitsofe.scanner.feature.auth.LoginViewModel
 import com.sitsofe.scanner.feature.cart.CartScreen
 import com.sitsofe.scanner.feature.checkout.CheckoutScreen
 import com.sitsofe.scanner.feature.checkout.CheckoutViewModel
@@ -39,6 +39,18 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MaterialTheme {
+                // Auth gate — reflect persisted session
+                var loggedIn by remember { mutableStateOf(Auth.isLoggedIn) }
+                val loginVM = remember { LoginViewModel(applicationContext) }
+
+                if (!loggedIn) {
+                    LoginScreen(
+                        vm = loginVM,
+                        onLoggedIn = { loggedIn = true }
+                    )
+                    return@MaterialTheme
+                }
+
                 val nav = rememberNavController()
                 val backEntry by nav.currentBackStackEntryAsState()
                 val route = backEntry?.destination?.route ?: "shop"
@@ -71,8 +83,7 @@ class MainActivity : ComponentActivity() {
                 ) { padding ->
                     NavHost(navController = nav, startDestination = "shop") {
 
-                        // Tabs
-                        composable("home") { SimpleCenterText(padding, "Home now") }
+                        composable("home") { SimpleCenterText(padding, "Home") }
                         composable("shop") {
                             ProductsScreen(
                                 vm = productsVM,
@@ -84,12 +95,12 @@ class MainActivity : ComponentActivity() {
                         composable("account") { SimpleCenterText(padding, "Account") }
                         composable("settings") { SimpleCenterText(padding, "Settings") }
 
-                        // Nested Shop routes
                         composable("shop/cart") {
                             CartScreen(
                                 vm = productsVM,
                                 onBack = { nav.popBackStack() },
-                                onProceed = { nav.navigate("shop/checkout") }
+                                onProceed = { nav.navigate("shop/checkout") },
+                                outerPadding = padding
                             )
                         }
                         composable("shop/checkout") {
@@ -117,7 +128,7 @@ class MainActivity : ComponentActivity() {
 private fun SimpleCenterText(paddingValues: PaddingValues, text: String) {
     Box(
         modifier = Modifier
-            .padding(paddingValues) // <- import added
+            .padding(paddingValues)
             .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {

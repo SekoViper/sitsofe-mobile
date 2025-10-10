@@ -71,16 +71,26 @@ fun CheckoutScreen(
                 .padding(16.dp)
         ) {
 
-            Text("Complete Sales", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-            Spacer(Modifier.height(12.dp))
+            Text(
+                "Complete Sales",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.height(18.dp))
 
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 OutlinedTextField(
                     value = search,
                     onValueChange = { vm.onSearchChange(it.filter { ch -> ch.isDigit() }.take(4)) },
                     label = { Text("Search customer last 4 digits") },
                     singleLine = true,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp)
                 )
                 val green = Color(0xFF26C281)
                 OutlinedButton(
@@ -89,21 +99,34 @@ fun CheckoutScreen(
                     colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = if (internal) green.copy(alpha = 0.15f) else Color.Transparent,
                         contentColor = if (internal) green else MaterialTheme.colorScheme.onSurface
-                    )
+                    ),
+                    shape = MaterialTheme.shapes.medium,
+                    modifier = Modifier.height(48.dp)
                 ) {
                     Text("Internal Sales")
                 }
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(16.dp))
 
             if (selected != null) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedButton(onClick = { vm.clearSelection() }) {
-                        Text("${selected!!.name}  ✕")
-                    }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    AssistChip(
+                        onClick = { vm.clearSelection() },
+                        label = { Text(selected!!.name) },
+                        trailingIcon = {
+                            IconButton(onClick = { vm.clearSelection() }) {
+                                Text("✕", color = MaterialTheme.colorScheme.primary)
+                            }
+                        },
+                        modifier = Modifier
+                            .height(40.dp)
+                    )
                 }
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(16.dp))
             }
 
             if (!internal && selected == null) {
@@ -118,34 +141,36 @@ fun CheckoutScreen(
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1f, fill = false),
+                            .heightIn(max = 220.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(filtered, key = { it._id }) { c ->
-                            Column(Modifier.fillMaxWidth()) {
-                                Row(
-                                    Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text("${c.name} - ${c.phone}")
-                                    Button(
-                                        onClick = { vm.selectCustomer(c) },
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                            contentColor = MaterialTheme.colorScheme.onSurface
-                                        )
-                                    ) { Text("Select") }
-                                }
-                                Divider()
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("${c.name} - ${c.phone}", style = MaterialTheme.typography.bodyMedium)
+                                Button(
+                                    onClick = { vm.selectCustomer(c) },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                        contentColor = MaterialTheme.colorScheme.onSurface
+                                    ),
+                                    shape = MaterialTheme.shapes.small,
+                                    modifier = Modifier.height(36.dp)
+                                ) { Text("Select") }
                             }
+                            Divider()
                         }
                     }
                 }
             }
 
             if (internal || selected != null) {
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(16.dp))
                 Text("Enter Conditions", style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
@@ -153,16 +178,22 @@ fun CheckoutScreen(
                     onValueChange = vm::onConditionChange,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(160.dp),
-                    placeholder = { Text("Optional notes...") }
+                        .defaultMinSize(minHeight = 80.dp)
+                        .heightIn(min = 80.dp, max = 160.dp),
+                    placeholder = { Text("Optional notes...") },
+                    minLines = 3,
+                    maxLines = 6,
+                    shape = MaterialTheme.shapes.medium
                 )
             }
 
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.height(24.dp))
 
             Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Button(
                     onClick = onClose,
@@ -170,7 +201,10 @@ fun CheckoutScreen(
                         containerColor = Color(0xFFE74C3C),
                         contentColor = Color.White
                     ),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp),
+                    shape = MaterialTheme.shapes.medium
                 ) { Text("Close") }
 
                 Button(
@@ -180,7 +214,10 @@ fun CheckoutScreen(
                         containerColor = Color(0xFF2F80ED),
                         contentColor = Color.White
                     ),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp),
+                    shape = MaterialTheme.shapes.medium
                 ) { Text("Complete Sales") }
             }
         }

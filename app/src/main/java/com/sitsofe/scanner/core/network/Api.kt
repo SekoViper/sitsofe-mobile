@@ -8,12 +8,15 @@ import retrofit2.http.POST
 /** Retrofit endpoints used by the app. */
 interface Api {
 
+    // ── AUTH ───────────────────────────────────────────────────────────────────
+    @POST("auth/login")
+    suspend fun login(@Body body: LoginRequest): LoginResponse
+
     // ── PRODUCTS (Subsidiary-scoped) ───────────────────────────────────────────
-    // Example: http://192.168.1.99:5001/api/products/subsidiary_products
     @GET("products/subsidiary_products")
     suspend fun subsidiaryProducts(): List<SubsidiaryProductDto>
 
-    // ── CUSTOMERS / SALES (already in use) ────────────────────────────────────
+    // ── CUSTOMERS / SALES ─────────────────────────────────────────────────────
     @GET("customers")
     suspend fun customers(): List<CustomerDto>
 
@@ -21,9 +24,35 @@ interface Api {
     suspend fun createSale(@Body body: SalesRequest): SalesResponse
 }
 
-/* ====== DTOs ====== */
+/* ====== AUTH models ====== */
+data class LoginRequest(
+    val email: String,
+    val password: String
+)
 
-/** Matches the JSON you posted for /products/subsidiary_products */
+data class LoginResponse(
+    val token: String,
+    val user: LoginUser,
+    val tenant: LoginTenant
+)
+
+data class LoginUser(
+    @SerializedName("_id") val id: String,
+    @SerializedName("tenant_id") val tenantId: String,
+    val name: String,
+    val email: String,
+    val phone: String?,
+    val role: String,
+    @SerializedName("subsidiary_id") val subsidiaryId: String
+)
+
+data class LoginTenant(
+    @SerializedName("tenant_id") val tenantId: String,
+    val name: String,
+    val currency: String
+)
+
+/* ====== PRODUCTS DTO + mapper (unchanged) ====== */
 data class SubsidiaryProductDto(
     @SerializedName("_id") val id: String,
     @SerializedName("tenant_id") val tenantId: String?,
@@ -32,10 +61,10 @@ data class SubsidiaryProductDto(
     @SerializedName("category_name") val categoryName: String?,
     @SerializedName("name") val name: String,
     @SerializedName("description") val description: String?,
-    @SerializedName("price") val price: Double,          // server provides a number; Gson handles int->double
+    @SerializedName("price") val price: Double,
     @SerializedName("discount_price") val discountPrice: Double?,
     @SerializedName("cost_price") val costPrice: Double?,
-    @SerializedName("stock") val stock: Double,          // server shows 32; Double keeps UI code unchanged
+    @SerializedName("stock") val stock: Double,
     @SerializedName("barcode") val barcode: String?,
     @SerializedName("expiry_date") val expiryDate: String?,
     @SerializedName("supplier_name") val supplierName: String?,
@@ -46,13 +75,9 @@ data class SubsidiaryProductDto(
     @SerializedName("bonus_points") val bonusPoints: Double?
 )
 
-/* ====== Mappers ====== */
-
-/** Clean server strings that may literally be "null" into real nulls/empties. */
 private fun String?.nullIfLiteral(): String? =
     this?.takeIf { it.isNotBlank() && it.lowercase() != "null" }
 
-/** Map network -> Room entity fields used by the app. */
 fun SubsidiaryProductDto.toEntity(): com.sitsofe.scanner.core.db.ProductEntity =
     com.sitsofe.scanner.core.db.ProductEntity(
         id = id,
@@ -64,8 +89,7 @@ fun SubsidiaryProductDto.toEntity(): com.sitsofe.scanner.core.db.ProductEntity =
         categoryName = categoryName.nullIfLiteral()
     )
 
-/* ====== Customers / Sales models (as used earlier) ====== */
-
+/* ====== Customers / Sales (unchanged) ====== */
 data class CustomerDto(
     @SerializedName("_id") val _id: String,
     @SerializedName("name") val name: String,
@@ -80,9 +104,9 @@ data class SalesItem(
 )
 
 data class SalesRequest(
-    val customer_phone: String?,        // null for internal sales
-    val customer_type: String,          // "regular" or "owner"
-    val payment_method: String,         // "cash" for now
+    val customer_phone: String?,
+    val customer_type: String,
+    val payment_method: String,
     val items: List<SalesItem>,
     val condition: String? = null
 )
