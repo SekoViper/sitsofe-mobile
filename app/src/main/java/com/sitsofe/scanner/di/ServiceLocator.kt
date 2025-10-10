@@ -19,16 +19,21 @@ object ServiceLocator {
     @Volatile private var dbRef: AppDb? = null
 
     private fun http(): OkHttpClient {
-        val authAndTenant = Interceptor { chain ->
+        val identityHeaders = Interceptor { chain ->
             val b = chain.request().newBuilder()
                 .header("Accept", "application/json")
 
-            // ✅ Auth header
+            // Auth
             Auth.token?.let { b.header("Authorization", "Bearer $it") }
 
-            // ✅ Multi-tenant headers (required by your backend)
+            // Multi-tenant headers
             Auth.tenantId?.let { b.header("X-Tenant-Id", it) }
             Auth.subsidiaryId?.let { b.header("X-Subsidiary-Id", it) }
+
+            // User scope headers (needed by some endpoints)
+            Auth.userId?.let { b.header("X-User-Id", it) }
+            Auth.role?.let { b.header("X-Role", it) }
+            Auth.currency?.let { b.header("X-Currency", it) }
 
             val req = b.build()
             Timber.tag("HTTP").d("→ %s %s", req.method, req.url)
@@ -37,12 +42,10 @@ object ServiceLocator {
 
         val httpLogger = HttpLoggingInterceptor { msg ->
             Timber.tag("HTTP").d(msg)
-        }.apply {
-            level = HttpLoggingInterceptor.Level.BODY
-        }
+        }.apply { level = HttpLoggingInterceptor.Level.BODY }
 
         return OkHttpClient.Builder()
-            .addInterceptor(authAndTenant)
+            .addInterceptor(identityHeaders)
             .addInterceptor(httpLogger)
             .connectTimeout(20, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)

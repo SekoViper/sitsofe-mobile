@@ -1,4 +1,4 @@
-# Sitsofe Scanner Starter v1.3
+# Sitsofe Scanner
 
 - Broadcast action: `android.scanner.scan`
 - Extra key: `result`
