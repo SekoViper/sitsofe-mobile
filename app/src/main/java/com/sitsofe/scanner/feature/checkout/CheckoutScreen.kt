@@ -4,6 +4,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -11,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalDensity
 import com.sitsofe.scanner.core.db.ProductEntity
 import com.sitsofe.scanner.feature.products.ProductsViewModel
 
@@ -62,12 +65,19 @@ fun CheckoutScreen(
         }
     }
 
-    Scaffold(snackbarHost = { SnackbarHost(snack) }) { padding ->
+    // We control insets ourselves so the keyboard can push content up.
+    Scaffold(
+        snackbarHost = { SnackbarHost(snack) },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0) // avoid double padding from Scaffold
+    ) { inner ->
+        // Single scrollable column for the form area
         Column(
             Modifier
                 .fillMaxSize()
                 .padding(outerPadding)
-                .padding(padding)
+                .padding(inner)
+                .imePadding()
+                .navigationBarsPadding()
                 .padding(16.dp)
         ) {
 
@@ -78,6 +88,7 @@ fun CheckoutScreen(
             )
             Spacer(Modifier.height(18.dp))
 
+            // --- Top row: search + internal toggle ---
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -109,86 +120,98 @@ fun CheckoutScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            if (selected != null) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    AssistChip(
-                        onClick = { vm.clearSelection() },
-                        label = { Text(selected!!.name) },
-                        trailingIcon = {
-                            IconButton(onClick = { vm.clearSelection() }) {
-                                Text("✕", color = MaterialTheme.colorScheme.primary)
-                            }
-                        },
-                        modifier = Modifier
-                            .height(40.dp)
-                    )
-                }
-                Spacer(Modifier.height(16.dp))
-            }
+            // Make the selection + list + conditions scroll together,
+            // so when the IME opens you can still reach the button row.
+            Column(
+                modifier = Modifier
+                    .weight(1f) // take remaining space above the bottom buttons
+                    .verticalScroll(rememberScrollState())
+            ) {
 
-            if (!internal && selected == null) {
-                Text("All Customers", style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.height(8.dp))
-
-                if (loading && customers.isEmpty()) {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                        CircularProgressIndicator()
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 220.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                if (selected != null) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        items(filtered, key = { it._id }) { c ->
-                            Row(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 4.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text("${c.name} - ${c.phone}", style = MaterialTheme.typography.bodyMedium)
-                                Button(
-                                    onClick = { vm.selectCustomer(c) },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                        contentColor = MaterialTheme.colorScheme.onSurface
-                                    ),
-                                    shape = MaterialTheme.shapes.small,
-                                    modifier = Modifier.height(36.dp)
-                                ) { Text("Select") }
+                        AssistChip(
+                            onClick = { vm.clearSelection() },
+                            label = { Text(selected!!.name) },
+                            trailingIcon = {
+                                IconButton(onClick = { vm.clearSelection() }) {
+                                    Text("✕", color = MaterialTheme.colorScheme.primary)
+                                }
+                            },
+                            modifier = Modifier.height(40.dp)
+                        )
+                    }
+                    Spacer(Modifier.height(16.dp))
+                }
+
+                if (!internal && selected == null) {
+                    Text("All Customers", style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.height(8.dp))
+
+                    if (loading && customers.isEmpty()) {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                            CircularProgressIndicator()
+                        }
+                    } else {
+                        // Fixed-height list so the form can still scroll overall
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 220.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            userScrollEnabled = true
+                        ) {
+                            items(filtered, key = { it._id }) { c ->
+                                Row(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("${c.name} - ${c.phone}", style = MaterialTheme.typography.bodyMedium)
+                                    Button(
+                                        onClick = { vm.selectCustomer(c) },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                            contentColor = MaterialTheme.colorScheme.onSurface
+                                        ),
+                                        shape = MaterialTheme.shapes.small,
+                                        modifier = Modifier.height(36.dp)
+                                    ) { Text("Select") }
+                                }
+                                Divider()
                             }
-                            Divider()
                         }
                     }
                 }
+
+                if (internal || selected != null) {
+                    Spacer(Modifier.height(16.dp))
+                    Text("Enter Conditions", style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = condition,
+                        onValueChange = vm::onConditionChange,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .defaultMinSize(minHeight = 80.dp)
+                            .heightIn(min = 80.dp, max = 160.dp),
+                        placeholder = { Text("Optional notes...") },
+                        minLines = 3,
+                        maxLines = 6,
+                        shape = MaterialTheme.shapes.medium
+                    )
+                }
+
+                // Give the IME some breathing room when this column scrolls
+                Spacer(Modifier.height(12.dp))
             }
 
-            if (internal || selected != null) {
-                Spacer(Modifier.height(16.dp))
-                Text("Enter Conditions", style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = condition,
-                    onValueChange = vm::onConditionChange,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .defaultMinSize(minHeight = 80.dp)
-                        .heightIn(min = 80.dp, max = 160.dp),
-                    placeholder = { Text("Optional notes...") },
-                    minLines = 3,
-                    maxLines = 6,
-                    shape = MaterialTheme.shapes.medium
-                )
-            }
-
-            Spacer(Modifier.height(24.dp))
-
+            // --- Bottom buttons: stay visible above nav bar & keyboard ---
             Row(
                 Modifier
                     .fillMaxWidth()
