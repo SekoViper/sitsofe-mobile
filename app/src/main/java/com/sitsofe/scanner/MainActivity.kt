@@ -29,6 +29,8 @@ import com.sitsofe.scanner.feature.products.ProductsVMFactory
 import com.sitsofe.scanner.feature.products.ProductsViewModel
 import com.sitsofe.scanner.ui.AppBottomBar
 import com.sitsofe.scanner.ui.AppTopBar
+import com.sitsofe.scanner.feature.dashboard.DashboardScreen
+import com.sitsofe.scanner.feature.dashboard.DashboardViewModel
 
 class MainActivity : ComponentActivity() {
 
@@ -83,7 +85,10 @@ class MainActivity : ComponentActivity() {
                 ) { padding ->
                     NavHost(navController = nav, startDestination = "shop") {
 
-                        composable("home") { SimpleCenterText(padding, "Home") }
+                        composable("home") {
+                            val vm = remember { DashboardViewModel(applicationContext) }
+                            DashboardScreen(vm = vm, outerPadding = padding)
+                        }
                         composable("shop") {
                             ProductsScreen(
                                 vm = productsVM,
