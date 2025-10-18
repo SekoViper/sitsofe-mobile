@@ -432,30 +432,6 @@ private fun DateRangeDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(
-                        onClick = {
-                            val e = LocalDate.now()
-                            val s = e.minusDays(6)
-                            startText = s.format(df); endText = e.format(df)
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                    ) { Text("Last 7 days") }
-
-                    Button(
-                        onClick = {
-                            val e = LocalDate.now()
-                            val s = e.minusDays(29)
-                            startText = s.format(df); endText = e.format(df)
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                    ) { Text("Last 30 days") }
-                }
-
                 if (error != null) {
                     Text(error!!, color = Color(0xFFE11D48), style = MaterialTheme.typography.bodySmall)
                 }

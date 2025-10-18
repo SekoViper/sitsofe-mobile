@@ -4,33 +4,34 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.core.view.WindowCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.PaddingValues
 import com.sitsofe.scanner.core.auth.Auth
 import com.sitsofe.scanner.feature.auth.LoginScreen
 import com.sitsofe.scanner.feature.auth.LoginViewModel
 import com.sitsofe.scanner.feature.cart.CartScreen
 import com.sitsofe.scanner.feature.checkout.CheckoutScreen
 import com.sitsofe.scanner.feature.checkout.CheckoutViewModel
+import com.sitsofe.scanner.feature.dashboard.DashboardScreen
+import com.sitsofe.scanner.feature.dashboard.DashboardViewModel
 import com.sitsofe.scanner.feature.products.ProductsScreen
 import com.sitsofe.scanner.feature.products.ProductsVMFactory
 import com.sitsofe.scanner.feature.products.ProductsViewModel
 import com.sitsofe.scanner.ui.AppBottomBar
 import com.sitsofe.scanner.ui.AppTopBar
-import com.sitsofe.scanner.feature.dashboard.DashboardScreen
-import com.sitsofe.scanner.feature.dashboard.DashboardViewModel
 
 class MainActivity : ComponentActivity() {
 
@@ -38,6 +39,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Draw edge-to-edge (we’ll add insets in Compose with statusBarsPadding / navigationBarsPadding)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContent {
             MaterialTheme {
@@ -71,6 +75,8 @@ class MainActivity : ComponentActivity() {
                 }
 
                 Scaffold(
+                    // IMPORTANT: we manage insets ourselves; don’t let Scaffold add system paddings
+                    contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
                     topBar = {
                         AppTopBar(
                             showBack = canGoBack,

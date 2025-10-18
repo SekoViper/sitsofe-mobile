@@ -49,7 +49,7 @@ object ServiceLocator {
 
     private fun retrofit(): Retrofit =
         retrofitRef ?: Retrofit.Builder()
-            .baseUrl(BuildConfig.BASE_URL) // http://192.168.1.99:5001/api/
+            .baseUrl(BuildConfig.BASE_URL)
             .client(http())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
