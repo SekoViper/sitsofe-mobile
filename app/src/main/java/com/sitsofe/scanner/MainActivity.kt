@@ -20,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.sitsofe.scanner.core.auth.Auth
+import com.sitsofe.scanner.core.auth.SessionPrefs
 import com.sitsofe.scanner.feature.auth.LoginScreen
 import com.sitsofe.scanner.feature.auth.LoginViewModel
 import com.sitsofe.scanner.feature.cart.CartScreen
@@ -30,6 +31,9 @@ import com.sitsofe.scanner.feature.dashboard.DashboardViewModel
 import com.sitsofe.scanner.feature.products.ProductsScreen
 import com.sitsofe.scanner.feature.products.ProductsVMFactory
 import com.sitsofe.scanner.feature.products.ProductsViewModel
+import com.sitsofe.scanner.feature.settings.LogoutAction
+import com.sitsofe.scanner.feature.settings.SettingsScreen
+import com.sitsofe.scanner.feature.settings.SettingsViewModel
 import com.sitsofe.scanner.ui.AppBottomBar
 import com.sitsofe.scanner.ui.AppTopBar
 
@@ -43,16 +47,29 @@ class MainActivity : ComponentActivity() {
         // Draw edge-to-edge (we’ll add insets in Compose with statusBarsPadding / navigationBarsPadding)
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
+        runCatching {
+            val session = SessionPrefs.load(applicationContext)
+            Auth.updateFrom(session)
+        }
+
         setContent {
             MaterialTheme {
-                // Auth gate — reflect persisted session
                 var loggedIn by remember { mutableStateOf(Auth.isLoggedIn) }
+
+                var lastEmailPrefill by remember {
+                    mutableStateOf(SessionPrefs.getLastEmail(applicationContext))
+                }
+
                 val loginVM = remember { LoginViewModel(applicationContext) }
 
                 if (!loggedIn) {
                     LoginScreen(
                         vm = loginVM,
-                        onLoggedIn = { loggedIn = true }
+                        onLoggedIn = {
+                            lastEmailPrefill = null
+                            loggedIn = true
+                        },
+                        initialEmail = lastEmailPrefill
                     )
                     return@MaterialTheme
                 }
@@ -95,6 +112,7 @@ class MainActivity : ComponentActivity() {
                             val vm = remember { DashboardViewModel(applicationContext) }
                             DashboardScreen(vm = vm, outerPadding = padding)
                         }
+
                         composable("shop") {
                             ProductsScreen(
                                 vm = productsVM,
@@ -102,9 +120,27 @@ class MainActivity : ComponentActivity() {
                                 outerPadding = padding
                             )
                         }
+
                         composable("inventory") { SimpleCenterText(padding, "Inventory") }
                         composable("account") { SimpleCenterText(padding, "Account") }
-                        composable("settings") { SimpleCenterText(padding, "Settings") }
+
+                        composable("settings") {
+                            val svm = remember { SettingsViewModel(applicationContext) }
+                            SettingsScreen(
+                                vm = svm,
+                                onActionDone = { action ->
+                                    productsVM.clearCart()
+
+                                    if (action == LogoutAction.SWITCH) {
+                                        lastEmailPrefill = SessionPrefs.getLastEmail(applicationContext)
+                                    } else {
+                                        lastEmailPrefill = null
+                                    }
+
+                                    loggedIn = false
+                                }
+                            )
+                        }
 
                         composable("shop/cart") {
                             CartScreen(
