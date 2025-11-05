@@ -45,4 +45,4 @@ cat >> .gitignore <<'EOF'
 # Heap dumps
 *.hprof
 EOF
-*Auth
+# *Auth
