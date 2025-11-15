@@ -54,7 +54,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MaterialTheme {
-                var loggedIn by remember { mutableStateOf(Auth.isLoggedIn) }
+				//!change this back to the below!!
+//                var loggedIn by remember { mutableStateOf(Auth.isLoggedIn) }
+                var loggedIn by remember { mutableStateOf(true) }
 
                 var lastEmailPrefill by remember {
                     mutableStateOf(SessionPrefs.getLastEmail(applicationContext))

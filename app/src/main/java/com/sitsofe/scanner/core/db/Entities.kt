@@ -10,8 +10,8 @@ data class ProductEntity(
     val price: Double,
     val costPrice: Double,
     val stock: Double,
-    val barcode: String? = null,
-    val categoryName: String? = null
+    val barcode: String,
+    val categoryName: String?
 )
 
 fun ProductEntity.pretty(): String =

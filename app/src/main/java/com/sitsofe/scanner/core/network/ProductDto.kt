@@ -8,8 +8,8 @@ data class ProductDto(
     val discount_price: Double = 0.0,
     val cost_price: Double,
     val stock: Double,
-    val barcode: String? = null,
-    val category_name: String? = null
+    val barcode: String,
+    val category_name: String?
 )
 
 fun ProductDto.toEntity() = ProductEntity(
