@@ -36,8 +36,10 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.sitsofe.scanner.ui.PreviewMocks
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -506,4 +508,10 @@ private fun shareText(ctx: android.content.Context, filename: String, text: Stri
         putExtra(Intent.EXTRA_TEXT, text)
     }
     ctx.startActivity(Intent.createChooser(intent, "Export dashboard"))
+}
+
+@Preview(showBackground = true, widthDp = 400, heightDp = 1200)
+@Composable
+private fun DashboardScreenPreview() {
+    DashboardScreen(vm = PreviewMocks.dashboardViewModel)
 }

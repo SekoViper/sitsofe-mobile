@@ -12,10 +12,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalDensity
 import com.sitsofe.scanner.core.db.ProductEntity
 import com.sitsofe.scanner.feature.products.ProductsViewModel
+import com.sitsofe.scanner.ui.PreviewMocks
 
 @Composable
 fun CheckoutScreen(
@@ -245,4 +246,15 @@ fun CheckoutScreen(
             }
         }
     }
+}
+
+@Preview(showBackground = true, widthDp = 320, heightDp = 640)
+@Composable
+private fun CheckoutScreenPreview() {
+    CheckoutScreen(
+        vm = PreviewMocks.checkoutViewModel,
+        productsVM = PreviewMocks.productsViewModel,
+        onClose = { },
+        onCompleted = { }
+    )
 }

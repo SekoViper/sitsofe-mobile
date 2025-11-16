@@ -1,19 +1,24 @@
 package com.sitsofe.scanner.feature.auth
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sitsofe.scanner.core.auth.Auth
 import com.sitsofe.scanner.core.auth.Session
 import com.sitsofe.scanner.core.auth.SessionPrefs
+import com.sitsofe.scanner.core.network.Api
 import com.sitsofe.scanner.core.network.LoginRequest
-import com.sitsofe.scanner.di.ServiceLocator
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
-class LoginViewModel(private val appContext: Context) : ViewModel() {
+@HiltViewModel
+class LoginViewModel @Inject constructor(
+    private val api: Api,
+    private val sessionPrefs: SessionPrefs
+) : ViewModel() {
 
     private val _loading = MutableStateFlow(false)
     val loading: StateFlow<Boolean> = _loading
@@ -28,7 +33,6 @@ class LoginViewModel(private val appContext: Context) : ViewModel() {
 
         viewModelScope.launch {
             runCatching {
-                val api = ServiceLocator.api()
                 val res = api.login(LoginRequest(email = email, password = password))
                 val session = Session(
                     token        = res.token,
@@ -42,9 +46,9 @@ class LoginViewModel(private val appContext: Context) : ViewModel() {
                     userCompany  = res.tenant.name,
                     userEmail    = res.user.email
                 )
-                SessionPrefs.save(appContext, session)
+                sessionPrefs.save(session)
                 Auth.updateFrom(session)
-                SessionPrefs.setLastEmail(appContext, email)
+                sessionPrefs.setLastEmail(email)
             }.onSuccess { onSuccess() }
              .onFailure { t ->
                  Timber.e(t, "Login failed")

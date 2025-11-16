@@ -1,22 +1,22 @@
 package com.sitsofe.scanner.feature.dashboard
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sitsofe.scanner.core.network.Api
 import com.sitsofe.scanner.core.network.DashboardSeriesDto
 import com.sitsofe.scanner.core.network.DashboardSummaryDto
-import com.sitsofe.scanner.di.ServiceLocator
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import javax.inject.Inject
 
-class DashboardViewModel(
-    private val appContext: Context,
-    private val api: Api = ServiceLocator.api()
+@HiltViewModel
+class DashboardViewModel @Inject constructor(
+    private val api: Api
 ) : ViewModel() {
 
     private val _loading = MutableStateFlow(false)

@@ -1,26 +1,25 @@
 package com.sitsofe.scanner.feature.checkout
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sitsofe.scanner.core.network.Api
 import com.sitsofe.scanner.core.network.CustomerDto
 import com.sitsofe.scanner.core.network.SalesItem
 import com.sitsofe.scanner.core.network.SalesRequest
-import com.sitsofe.scanner.di.ServiceLocator
 import com.sitsofe.scanner.feature.products.ProductsViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
-class CheckoutViewModel(
-    private val appContext: Context,
-    private val productsVM: com.sitsofe.scanner.feature.products.ProductsViewModel
+@HiltViewModel
+class CheckoutViewModel @Inject constructor(
+    private val api: Api,
+    private val productsVM: ProductsViewModel
 ) : ViewModel() {
-
-    private val api: Api = ServiceLocator.api()
 
     // UI state
     private val _loading = MutableStateFlow(false)

@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -22,24 +23,28 @@ import androidx.navigation.compose.rememberNavController
 import com.sitsofe.scanner.core.auth.Auth
 import com.sitsofe.scanner.core.auth.SessionPrefs
 import com.sitsofe.scanner.feature.auth.LoginScreen
-import com.sitsofe.scanner.feature.auth.LoginViewModel
 import com.sitsofe.scanner.feature.cart.CartScreen
 import com.sitsofe.scanner.feature.checkout.CheckoutScreen
 import com.sitsofe.scanner.feature.checkout.CheckoutViewModel
 import com.sitsofe.scanner.feature.dashboard.DashboardScreen
 import com.sitsofe.scanner.feature.dashboard.DashboardViewModel
 import com.sitsofe.scanner.feature.products.ProductsScreen
-import com.sitsofe.scanner.feature.products.ProductsVMFactory
 import com.sitsofe.scanner.feature.products.ProductsViewModel
 import com.sitsofe.scanner.feature.settings.LogoutAction
 import com.sitsofe.scanner.feature.settings.SettingsScreen
 import com.sitsofe.scanner.feature.settings.SettingsViewModel
 import com.sitsofe.scanner.ui.AppBottomBar
 import com.sitsofe.scanner.ui.AppTopBar
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private val productsVM: ProductsViewModel by viewModels { ProductsVMFactory(this) }
+    @Inject
+    lateinit var sessionPrefs: SessionPrefs
+
+    private val productsVM: ProductsViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,7 +53,7 @@ class MainActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         runCatching {
-            val session = SessionPrefs.load(applicationContext)
+            val session = sessionPrefs.load()
             Auth.updateFrom(session)
         }
 
@@ -59,14 +64,12 @@ class MainActivity : ComponentActivity() {
                 var loggedIn by remember { mutableStateOf(true) }
 
                 var lastEmailPrefill by remember {
-                    mutableStateOf(SessionPrefs.getLastEmail(applicationContext))
+                    mutableStateOf(sessionPrefs.getLastEmail())
                 }
-
-                val loginVM = remember { LoginViewModel(applicationContext) }
 
                 if (!loggedIn) {
                     LoginScreen(
-                        vm = loginVM,
+                        vm = hiltViewModel(),
                         onLoggedIn = {
                             lastEmailPrefill = null
                             loggedIn = true
@@ -111,7 +114,7 @@ class MainActivity : ComponentActivity() {
                     NavHost(navController = nav, startDestination = "shop") {
 
                         composable("home") {
-                            val vm = remember { DashboardViewModel(applicationContext) }
+                            val vm = hiltViewModel<DashboardViewModel>()
                             DashboardScreen(vm = vm, outerPadding = padding)
                         }
 
@@ -127,14 +130,14 @@ class MainActivity : ComponentActivity() {
                         composable("account") { SimpleCenterText(padding, "Account") }
 
                         composable("settings") {
-                            val svm = remember { SettingsViewModel(applicationContext) }
+                            val svm = hiltViewModel<SettingsViewModel>()
                             SettingsScreen(
                                 vm = svm,
                                 onActionDone = { action ->
                                     productsVM.clearCart()
 
                                     if (action == LogoutAction.SWITCH) {
-                                        lastEmailPrefill = SessionPrefs.getLastEmail(applicationContext)
+                                        lastEmailPrefill = sessionPrefs.getLastEmail()
                                     } else {
                                         lastEmailPrefill = null
                                     }
@@ -153,7 +156,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable("shop/checkout") {
-                            val vm = remember { CheckoutViewModel(this@MainActivity, productsVM) }
+                            val vm = hiltViewModel<CheckoutViewModel>()
                             CheckoutScreen(
                                 vm = vm,
                                 productsVM = productsVM,

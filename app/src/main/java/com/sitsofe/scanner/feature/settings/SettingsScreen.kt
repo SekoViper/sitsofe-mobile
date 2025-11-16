@@ -5,8 +5,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.sitsofe.scanner.ui.PreviewMocks
 
 enum class LogoutAction { LOGOUT, SWITCH }
 
@@ -101,4 +104,17 @@ private fun ProfileRow(label: String, value: String) {
         Text(label, style = MaterialTheme.typography.bodyMedium)
         Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
     }
+}
+
+@Preview(showBackground = true, widthDp = 320, heightDp = 640)
+@Composable
+private fun SettingsScreenPreview() {
+    val context = LocalContext.current
+    SettingsScreen(
+        vm = SettingsViewModel(
+            PreviewMocks.MockSessionPrefs(context),
+            PreviewMocks.MockAppDb(context)
+        ),
+        onActionDone = { }
+    )
 }

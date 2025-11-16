@@ -8,13 +8,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.sitsofe.scanner.core.db.ProductEntity
 import com.sitsofe.scanner.barcode.ScannerFactory
 import com.sitsofe.scanner.barcode.ScannerMode
+import com.sitsofe.scanner.core.db.ProductEntity
 import com.sitsofe.scanner.ui.CameraScanScreen
+import com.sitsofe.scanner.ui.PreviewMocks
 
 @Composable
 fun ProductsScreen(
@@ -117,4 +119,13 @@ fun ProductsScreen(
             }
         }
     }
+}
+
+@Preview(showBackground = true, widthDp = 320, heightDp = 640)
+@Composable
+private fun ProductsScreenPreview() {
+    ProductsScreen(
+        vm = PreviewMocks.productsViewModel,
+        onPick = { }
+    )
 }

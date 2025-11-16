@@ -6,10 +6,13 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.sitsofe.scanner.core.data.ProductRepository
 import com.sitsofe.scanner.core.db.ProductEntity
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ProductsViewModel(
+@HiltViewModel
+class ProductsViewModel @Inject constructor(
     private val repo: ProductRepository
 ) : ViewModel() {
 
