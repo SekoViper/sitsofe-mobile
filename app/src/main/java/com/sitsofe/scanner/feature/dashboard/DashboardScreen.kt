@@ -51,10 +51,12 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.LayoutDirection
 import com.sitsofe.scanner.core.network.DashboardSeriesDto
 import com.sitsofe.scanner.core.network.DashboardSummaryDto
 import com.sitsofe.scanner.core.network.RankedProductDto
@@ -136,7 +138,12 @@ fun DashboardScreen(
                 )
             }
 
-            val bottomInset = inner.calculateBottomPadding() + outerPadding.calculateBottomPadding()
+            val layoutDirection = LocalLayoutDirection.current
+            val listContentPadding = combinePaddingValues(
+                layoutDirection,
+                PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+                inner
+            )
 
             if (loading && sum == null) {
                 Box(
@@ -151,9 +158,8 @@ fun DashboardScreen(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(outerPadding)
-                        .padding(inner),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+                        .padding(outerPadding),
+                    contentPadding = listContentPadding,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     item {
@@ -171,7 +177,6 @@ fun DashboardScreen(
                         item { EpicSellingProductsCard(summary.topSellingProducts, summary.lowSellingProducts) }
                         item { SummaryTableCard(summary) }
                     }
-                    item { Spacer(Modifier.height(16.dp + bottomInset)) }
                 }
             }
         }
@@ -389,7 +394,7 @@ private fun ProfitCard(
         ) {
             Text(title, fontSize = 12.sp, color = PharmacyColors.CardWhite, fontWeight = FontWeight.Medium)
             Spacer(Modifier.height(8.dp))
-            Text(value, fontSize = 32.sp, fontWeight = FontWeight.Bold, color = PharmacyColors.CardWhite)
+            Text(value, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = PharmacyColors.CardWhite)
             Spacer(Modifier.height(4.dp))
             Text(subtitle, fontSize = 10.sp, color = PharmacyColors.CardWhite, lineHeight = 12.sp)
         }
@@ -517,7 +522,7 @@ private fun MetricsSection(summary: DashboardSummaryDto?) {
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             MetricCard(
-                title = "Patients",
+                title = "Transactions",
                 mainLabel = "Sales",
                 mainValue = "${formatInt(summary?.totalTransactions ?: 0)} / ${formatMoney(summary?.totalSales ?: 0.0)}",
                 modifier = Modifier.weight(1f)
@@ -551,7 +556,7 @@ private fun MetricsSection(summary: DashboardSummaryDto?) {
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             MetricCard(
-                title = "Profit Marga",
+                title = "Profit Margin",
                 mainLabel = "Stock",
                 mainValue = "LRD ${formatMoney(summary?.currentStockValue ?: 0.0)}",
                 tags = listOf(
@@ -561,7 +566,7 @@ private fun MetricsSection(summary: DashboardSummaryDto?) {
                 modifier = Modifier.weight(1f)
             )
             MetricCard(
-                title = "Profit Margna",
+                title = "Profit Margin",
                 mainLabel = "Inventory",
                 mainValue = "${formatInt(summary?.outOfStockItems ?: 0)} items",
                 largeValue = "${summary?.profitMargin?.toInt() ?: 0}%",
@@ -846,6 +851,23 @@ private fun axisLabels(labels: List<String>, maxCount: Int = 4): List<String> {
         val index = (idx * step).roundToInt().coerceIn(0, labels.lastIndex)
         labels[index]
     }
+}
+
+private fun combinePaddingValues(
+    layoutDirection: LayoutDirection,
+    vararg paddings: PaddingValues
+): PaddingValues {
+    var start = 0.dp
+    var end = 0.dp
+    var top = 0.dp
+    var bottom = 0.dp
+    paddings.forEach { padding ->
+        start += padding.calculateStartPadding(layoutDirection)
+        end += padding.calculateEndPadding(layoutDirection)
+        top += padding.calculateTopPadding()
+        bottom += padding.calculateBottomPadding()
+    }
+    return PaddingValues(start = start, top = top, end = end, bottom = bottom)
 }
 
 private fun quickFilterLabel(value: String): String = when (value) {
