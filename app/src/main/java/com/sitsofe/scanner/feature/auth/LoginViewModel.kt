@@ -48,7 +48,7 @@ class LoginViewModel(private val appContext: Context) : ViewModel() {
             }.onSuccess { onSuccess() }
              .onFailure { t ->
                  Timber.e(t, "Login failed")
-                 _error.value = "Login failed. Check your email/password."
+                 _error.value = "Login failed. Check your email or password."
              }
             _loading.value = false
         }
