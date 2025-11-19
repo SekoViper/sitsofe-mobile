@@ -12,7 +12,7 @@
 
         <!-- Splash + brand identity -->
         <item name="android:windowSplashScreenBackground">@color/sitsofe_blue</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/sitsofe_app_icon</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/sitsofe_splash_icon</item>
         <item name="android:windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
     </style>
 </resources>

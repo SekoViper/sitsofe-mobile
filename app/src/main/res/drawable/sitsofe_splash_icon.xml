@@ -1,0 +1,6 @@
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@mipmap/sitsofe_app_icon"
+    android:insetLeft="@dimen/splash_icon_inset"
+    android:insetTop="@dimen/splash_icon_inset"
+    android:insetRight="@dimen/splash_icon_inset"
+    android:insetBottom="@dimen/splash_icon_inset"/>
