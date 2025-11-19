@@ -10,13 +10,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.TrendingDown
 import androidx.compose.material.icons.filled.TrendingUp
-import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -29,7 +25,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -38,8 +33,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -114,19 +107,7 @@ fun DashboardScreen(
     ) {
         Scaffold(
             snackbarHost = { SnackbarHost(snack) },
-            containerColor = Color.Transparent,
-            topBar = {
-                DashboardTopBar(
-                    onBack = { /* TODO hook navigation */ },
-                    onChat = { /* future action */ },
-                    onMenu = { /* future action */ },
-                    onExport = {
-                        val text = vm.exportText()
-                        shareText(ctx, "dashboard.csv", text)
-                    },
-                    onFilterClick = { showDateDialog = true }
-                )
-            }
+            containerColor = Color.Transparent, // Trimmed nested top bar to remove the redundant padding under the global app bar.
         ) { inner ->
             if (showDateDialog) {
                 DateRangeDialog(
@@ -239,49 +220,6 @@ private fun DateRangeDialog(
 
 /* ===== Dashboard chrome and custom cards ===== */
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun DashboardTopBar(
-    onBack: () -> Unit,
-    onChat: () -> Unit,
-    onMenu: () -> Unit,
-    onExport: () -> Unit,
-    onFilterClick: () -> Unit
-) {
-    TopAppBar(
-        title = {
-            Text(
-                "Prowacams",
-                fontWeight = FontWeight.Bold,
-                color = PharmacyColors.TextPrimary
-            )
-        },
-        navigationIcon = {
-            IconButton(onClick = onBack) {
-                Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = PharmacyColors.TextPrimary)
-            }
-        },
-        actions = {
-            IconButton(onClick = onFilterClick) {
-                Icon(Icons.Outlined.FilterList, contentDescription = "Filter", tint = PharmacyColors.TextPrimary)
-            }
-            IconButton(onClick = onChat) {
-                Icon(Icons.Filled.Chat, contentDescription = "Chat", tint = PharmacyColors.TextPrimary)
-            }
-            IconButton(onClick = onExport) {
-                Icon(Icons.Outlined.Download, contentDescription = "Export", tint = PharmacyColors.TextPrimary)
-            }
-            IconButton(onClick = onMenu) {
-                Icon(Icons.Filled.MoreVert, contentDescription = "Menu", tint = PharmacyColors.TextPrimary)
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = PharmacyColors.CardWhite.copy(alpha = 0.95f),
-            titleContentColor = PharmacyColors.TextPrimary
-        )
-    )
-}
-
 @Composable
 private fun FilterPillsRow(
     filter: String,
@@ -290,8 +228,8 @@ private fun FilterPillsRow(
     onDateRangeClick: () -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Dashboard", color = PharmacyColors.TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-        Text("Showing $filterLabel", color = PharmacyColors.TextSecondary, fontSize = 14.sp)
+        // Text("Dashboard", color = PharmacyColors.TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        Text("Showing $filterLabel", color = PharmacyColors.TextSecondary, fontSize = 12.sp)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -781,7 +719,7 @@ private fun SummaryTableCard(summary: DashboardSummaryDto) {
             Divider(Modifier.padding(vertical = 8.dp))
             TableRow("Profit Stock", summary.lowSellingProducts.firstOrNull()?.productName, null, PharmacyColors.Success)
             Divider(Modifier.padding(vertical = 8.dp))
-            TableRow("Top MyCChart", summary.lowSellingProducts.getOrNull(1)?.productName, null, PharmacyColors.Danger)
+            TableRow("Low On Chart", summary.lowSellingProducts.getOrNull(1)?.productName, null, PharmacyColors.Danger)
         }
     }
 }
