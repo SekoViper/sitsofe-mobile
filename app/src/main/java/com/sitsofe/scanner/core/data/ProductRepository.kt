@@ -21,8 +21,9 @@ class ProductRepository(
     /** Paging source for products (Room-backed). */
     fun pager(query: String): Flow<PagingData<ProductEntity>> {
         val dao = db.productDao()
-        val source = if (query.isBlank()) dao.pagingAll() else dao.pagingSearch(query)
-        return Pager(PagingConfig(pageSize = 40, prefetchDistance = 20)) { source }.flow
+        return Pager(PagingConfig(pageSize = 40, prefetchDistance = 20)) {
+            if (query.isBlank()) dao.pagingAll() else dao.pagingSearch(query)
+        }.flow
     }
 
     /** Local lookup by barcode (fast; used by scanner and manual entry). */
