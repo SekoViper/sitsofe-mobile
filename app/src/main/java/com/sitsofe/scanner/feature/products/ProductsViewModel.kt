@@ -8,10 +8,18 @@ import com.sitsofe.scanner.core.data.ProductRepository
 import com.sitsofe.scanner.core.db.ProductEntity
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class ProductsViewModel(
     private val repo: ProductRepository
 ) : ViewModel() {
+
+    private val syncMutex = Mutex()
+    private val _refreshing = MutableStateFlow(false)
+    val refreshing: StateFlow<Boolean> = _refreshing.asStateFlow()
+    private var lastSuccessfulSync: Long = 0L
+    private val minRefreshIntervalMs = 60_000L
 
     // ───── search ──────────────────────────────────────────────────────────────
     private val queryFlow = MutableStateFlow("")
@@ -54,6 +62,30 @@ class ProductsViewModel(
 
     fun initialSyncOnce() {
         viewModelScope.launch { repo.initialSyncIfNeeded() }
+    }
+
+    /** Called when the tab becomes visible so we keep the cache reasonably fresh. */
+    fun onVisible() {
+        viewModelScope.launch { refreshInternal(force = false) }
+    }
+
+    fun forceRefresh() {
+        viewModelScope.launch { refreshInternal(force = true) }
+    }
+
+    private suspend fun refreshInternal(force: Boolean) {
+        syncMutex.withLock {
+            val now = System.currentTimeMillis()
+            if (!force && now - lastSuccessfulSync < minRefreshIntervalMs) return
+            _refreshing.value = true
+            try {
+                runCatching { repo.refreshProducts() }
+                    .onSuccess { lastSuccessfulSync = now }
+                    .onFailure { t -> _events.emit("Refresh failed: ${t.message ?: "Unknown"}") }
+            } finally {
+                _refreshing.value = false
+            }
+        }
     }
 
     // used by scanner and manual inputs

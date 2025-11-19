@@ -3,7 +3,10 @@ package com.sitsofe.scanner.feature.dashboard
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sitsofe.scanner.core.network.Api
+import com.google.gson.Gson
+import com.sitsofe.scanner.core.db.AppDb
+import com.sitsofe.scanner.core.db.DashboardSeriesCacheEntity
+import com.sitsofe.scanner.core.db.DashboardSummaryCacheEntity
 import com.sitsofe.scanner.core.network.DashboardSeriesDto
 import com.sitsofe.scanner.core.network.DashboardSummaryDto
 import com.sitsofe.scanner.di.ServiceLocator
@@ -16,8 +19,11 @@ import java.time.format.DateTimeFormatter
 
 class DashboardViewModel(
     private val appContext: Context,
-    private val api: Api = ServiceLocator.api()
+    private val api: com.sitsofe.scanner.core.network.Api = ServiceLocator.api()
 ) : ViewModel() {
+
+    private val dashboardDao = AppDb.get(appContext).dashboardDao()
+    private val gson = Gson()
 
     private val _loading = MutableStateFlow(false)
     val loading: StateFlow<Boolean> = _loading
@@ -34,16 +40,21 @@ class DashboardViewModel(
     private val dfApi: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
     fun initLoad() {
-        if (_summary.value != null) return
+        if (_loading.value) return
         viewModelScope.launch {
-            _loading.value = true
-            runCatching { api.dashboardSummary() }
-                .onSuccess { _summary.value = it }
-                .onFailure { Timber.e(it, "Dashboard summary failed") }
-            runCatching { api.dashboardSeries(_filter.value) }
-                .onSuccess { _series.value = it }
-                .onFailure { Timber.e(it, "Dashboard series failed") }
-            _loading.value = false
+            if (_summary.value == null) {
+                dashboardDao.getSummary()?.let { entity ->
+                    runCatching { gson.fromJson(entity.payload, DashboardSummaryDto::class.java) }
+                        .onSuccess { _summary.value = it }
+                }
+            }
+            if (_series.value == null) {
+                dashboardDao.getSeries(_filter.value)?.let { entity ->
+                    runCatching { gson.fromJson(entity.payload, DashboardSeriesDto::class.java) }
+                        .onSuccess { _series.value = it }
+                }
+            }
+            refreshSummaryAndSeries(_filter.value)
         }
     }
 
@@ -51,8 +62,21 @@ class DashboardViewModel(
         if (_filter.value == filterType) return
         _filter.value = filterType
         viewModelScope.launch {
+            dashboardDao.getSeries(filterType)?.let { entity ->
+                runCatching { gson.fromJson(entity.payload, DashboardSeriesDto::class.java) }
+                    .onSuccess { _series.value = it }
+            }
             runCatching { api.dashboardSeries(filterType) }
-                .onSuccess { _series.value = it }
+                .onSuccess {
+                    _series.value = it
+                    dashboardDao.saveSeries(
+                        DashboardSeriesCacheEntity(
+                            filterType = filterType,
+                            payload = gson.toJson(it),
+                            updatedAt = System.currentTimeMillis()
+                        )
+                    )
+                }
                 .onFailure { Timber.e(it, "Series load failed") }
         }
     }
@@ -63,10 +87,46 @@ class DashboardViewModel(
             val s = start.format(dfApi)
             val e = end.format(dfApi)
             runCatching { api.dashboardSummaryRange(s, e) }
-                .onSuccess { _summary.value = it }
+                .onSuccess {
+                    _summary.value = it
+                    dashboardDao.saveSummary(
+                        DashboardSummaryCacheEntity(
+                            payload = gson.toJson(it),
+                            updatedAt = System.currentTimeMillis()
+                        )
+                    )
+                }
                 .onFailure { Timber.e(it, "Summary range failed") }
             _loading.value = false
         }
+    }
+
+    private suspend fun refreshSummaryAndSeries(filterType: String) {
+        _loading.value = true
+        runCatching { api.dashboardSummary() }
+            .onSuccess {
+                _summary.value = it
+                dashboardDao.saveSummary(
+                    DashboardSummaryCacheEntity(
+                        payload = gson.toJson(it),
+                        updatedAt = System.currentTimeMillis()
+                    )
+                )
+            }
+            .onFailure { Timber.e(it, "Dashboard summary failed") }
+        runCatching { api.dashboardSeries(filterType) }
+            .onSuccess {
+                _series.value = it
+                dashboardDao.saveSeries(
+                    DashboardSeriesCacheEntity(
+                        filterType = filterType,
+                        payload = gson.toJson(it),
+                        updatedAt = System.currentTimeMillis()
+                    )
+                )
+            }
+            .onFailure { Timber.e(it, "Dashboard series failed") }
+        _loading.value = false
     }
 
     /** Build an export text (CSV-ish) to share. */

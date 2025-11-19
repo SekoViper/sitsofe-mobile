@@ -4,8 +4,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -16,6 +21,7 @@ import com.sitsofe.scanner.barcode.ScannerFactory
 import com.sitsofe.scanner.barcode.ScannerMode
 import com.sitsofe.scanner.ui.CameraScanScreen
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ProductsScreen(
     vm: ProductsViewModel,
@@ -24,7 +30,10 @@ fun ProductsScreen(
 ) {
     val ctx = LocalContext.current
 
-    LaunchedEffect(Unit) { vm.initialSyncOnce() }
+    LaunchedEffect(Unit) {
+        vm.initialSyncOnce()
+        vm.onVisible()
+    }
 
     // Auto scanner (uses vendor broadcast if available)
     val provider = remember { ScannerFactory(ctx).create(ScannerMode.AUTO) }
@@ -40,6 +49,11 @@ fun ProductsScreen(
 
     val lazyItems = vm.items.collectAsLazyPagingItems()
     val cart by vm.cart.collectAsState()
+    val refreshing by vm.refreshing.collectAsState()
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = refreshing,
+        onRefresh = { vm.forceRefresh() }
+    )
 
     Scaffold(snackbarHost = { SnackbarHost(snackbar) }) { inside ->
         Column(
@@ -74,10 +88,15 @@ fun ProductsScreen(
 
             Spacer(Modifier.height(8.dp))
 
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(0.dp),
-                modifier = Modifier.fillMaxSize()
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pullRefresh(pullRefreshState)
             ) {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(0.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
                 items(lazyItems.itemSnapshotList.items, key = { it.id }) { p ->
                     ListItem(
                         leadingContent = {
@@ -104,16 +123,23 @@ fun ProductsScreen(
                     Divider()
                 }
 
-                // Loading / error footers
-                if (lazyItems.loadState.refresh is LoadState.Loading) {
-                    item { CircularProgressIndicator(Modifier.padding(16.dp)) }
+                    // Loading / error footers
+                    if (lazyItems.loadState.refresh is LoadState.Loading) {
+                        item { CircularProgressIndicator(Modifier.padding(16.dp)) }
+                    }
+                    if (lazyItems.loadState.append is LoadState.Loading) {
+                        item { CircularProgressIndicator(Modifier.padding(16.dp)) }
+                    }
+                    if (lazyItems.loadState.refresh is LoadState.Error) {
+                        item { Text("Failed to load. Pull to refresh.", Modifier.padding(16.dp)) }
+                    }
                 }
-                if (lazyItems.loadState.append is LoadState.Loading) {
-                    item { CircularProgressIndicator(Modifier.padding(16.dp)) }
-                }
-                if (lazyItems.loadState.refresh is LoadState.Error) {
-                    item { Text("Failed to load. Pull to refresh.", Modifier.padding(16.dp)) }
-                }
+
+                PullRefreshIndicator(
+                    refreshing = refreshing,
+                    state = pullRefreshState,
+                    modifier = Modifier.align(Alignment.TopCenter)
+                )
             }
         }
     }

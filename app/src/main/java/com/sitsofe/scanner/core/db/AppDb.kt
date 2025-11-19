@@ -5,9 +5,19 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [ProductEntity::class], version = 1)
+@Database(
+    entities = [
+        ProductEntity::class,
+        CustomerEntity::class,
+        DashboardSummaryCacheEntity::class,
+        DashboardSeriesCacheEntity::class
+    ],
+    version = 2
+)
 abstract class AppDb : RoomDatabase() {
     abstract fun productDao(): ProductDao
+    abstract fun customerDao(): CustomerDao
+    abstract fun dashboardDao(): DashboardCacheDao
 
     companion object {
         @Volatile private var INSTANCE: AppDb? = null

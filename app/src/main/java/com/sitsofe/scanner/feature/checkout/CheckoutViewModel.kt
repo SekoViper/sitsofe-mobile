@@ -3,7 +3,9 @@ package com.sitsofe.scanner.feature.checkout
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sitsofe.scanner.core.network.Api
+import com.sitsofe.scanner.core.data.toDto
+import com.sitsofe.scanner.core.data.toEntity
+import com.sitsofe.scanner.core.db.AppDb
 import com.sitsofe.scanner.core.network.CustomerDto
 import com.sitsofe.scanner.core.network.SalesItem
 import com.sitsofe.scanner.core.network.SalesRequest
@@ -20,7 +22,8 @@ class CheckoutViewModel(
     private val productsVM: com.sitsofe.scanner.feature.products.ProductsViewModel
 ) : ViewModel() {
 
-    private val api: Api = ServiceLocator.api()
+    private val api = ServiceLocator.api()
+    private val customerDao = AppDb.get(appContext).customerDao()
 
     // UI state
     private val _loading = MutableStateFlow(false)
@@ -52,15 +55,29 @@ class CheckoutViewModel(
     val toast: StateFlow<String?> = _toast.asStateFlow()
     fun clearToast() { _toast.value = null }
 
-    fun loadCustomers() {
+    fun loadCustomers(force: Boolean = false) {
         if (_loading.value) return
         viewModelScope.launch {
             _loading.value = true
+
+            // Serve cached contacts first for instant offline UX.
+            val cached = runCatching { customerDao.getAll() }.getOrDefault(emptyList())
+            if (cached.isNotEmpty() && !force) {
+                _customers.value = cached.map { it.toDto() }
+            }
+
             runCatching { api.customers() }
-                .onSuccess { _customers.value = it }
+                .onSuccess { fresh ->
+                    _customers.value = fresh
+                    customerDao.replaceAll(fresh.map { it.toEntity() })
+                }
                 .onFailure { t ->
                     Timber.e(t, "Failed to load customers")
-                    _toast.value = "Failed to load customers"
+                    if (cached.isEmpty()) {
+                        _toast.value = "Failed to load customers"
+                    } else {
+                        _toast.value = "Showing cached customers"
+                    }
                 }
             _loading.value = false
         }
