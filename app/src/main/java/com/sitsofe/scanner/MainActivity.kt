@@ -84,7 +84,7 @@ class MainActivity : ComponentActivity() {
                     route.startsWith("shop/checkout") -> "Complete Sales" to false
                     route.startsWith("shop/cart") -> "Cart ($cartCount)" to false
                     route.startsWith("shop") -> "Products" to true
-                    route == "home" -> "Home" to false
+                    route == "home" -> "Dashboard" to false
                     route == "inventory" -> "Inventory" to false
                     route == "account" -> "Account" to false
                     route == "settings" -> "Settings" to false
