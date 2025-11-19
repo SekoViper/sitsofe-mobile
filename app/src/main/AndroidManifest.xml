@@ -8,9 +8,9 @@
     <application
         android:name=".SitsofeApp"
         android:allowBackup="true"
-        android:label="Sitsofe Scanner"
-        android:icon="@mipmap/ic_launcher"
-        android:roundIcon="@mipmap/ic_launcher"
+        android:label="SitsofeApp"
+        android:icon="@mipmap/sitsofe_app_icon"
+        android:roundIcon="@mipmap/sitsofe_app_icon"
         android:supportsRtl="true"
         android:theme="@style/Theme.Sitsofe" 
         android:usesCleartextTraffic="true">
