@@ -77,8 +77,17 @@ class MainActivity : ComponentActivity() {
                 val nav = rememberNavController()
                 val backEntry by nav.currentBackStackEntryAsState()
                 val route = backEntry?.destination?.route ?: "shop"
-                val canGoBack = nav.previousBackStackEntry != null
+                val topLevelRoutes = remember { setOf("home", "shop", "inventory", "account", "settings") }
+                val normalizedRoute = route.substringBefore('/')
+                val isTopLevelDestination = normalizedRoute in topLevelRoutes
+                val canGoBack = nav.previousBackStackEntry != null && !isTopLevelDestination
                 val cartCount by productsVM.cartCount.collectAsState(initial = 0)
+
+                LaunchedEffect(route) {
+                    if (route == "shop") {
+                        productsVM.onVisible()
+                    }
+                }
 
                 val (title, showCart) = when {
                     route.startsWith("shop/checkout") -> "Complete Sales" to false
@@ -100,7 +109,16 @@ class MainActivity : ComponentActivity() {
                             title = title,
                             cartCount = cartCount,
                             showCart = showCart,
-                            onBack = { nav.popBackStack() },
+                            onBack = {
+                                val popped = nav.popBackStack()
+                                if (!popped) {
+                                    nav.navigate("shop") {
+                                        popUpTo(nav.graph.startDestinationId) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            },
                             onCart = { nav.navigate("shop/cart") }
                         )
                     },
