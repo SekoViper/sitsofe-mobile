@@ -17,6 +17,18 @@ interface Api {
     @GET("customers")
     suspend fun customers(): List<CustomerDto>
 
+    @GET("customers/{id}")
+    suspend fun customerDetail(@Path("id") id: String): CustomerDto
+
+    @DELETE("customers/{id}")
+    suspend fun deleteCustomer(@Path("id") id: String): ApiMessage
+
+    @PUT("customers/{id}")
+    suspend fun updateCustomer(
+        @Path("id") id: String,
+        @Body body: UpdateCustomerRequest
+    ): UpdateCustomerResponse
+
     @POST("sales")
     suspend fun createSale(@Body body: SalesRequest): SalesResponse
 
@@ -91,10 +103,52 @@ fun SubsidiaryProductDto.toEntity(): com.sitsofe.scanner.core.db.ProductEntity =
 
 /* ===================== CUSTOMERS/SALES ===================== */
 data class CustomerDto(
-    @SerializedName("_id") val _id: String,
+    @SerializedName("_id") val id: String,
+    @SerializedName("tenant_id") val tenantId: String? = null,
+    @SerializedName("subsidiary_id") val subsidiaryId: String? = null,
     val name: String,
-    val phone: String
+    val phone: String,
+    val points: Int? = null,
+    val redemptionCount: Int? = null,
+    @SerializedName("visit_history") val visitHistory: List<VisitHistoryDto>? = null,
+    @SerializedName("condition_history") val conditionHistory: List<ConditionHistoryDto>? = null,
+    val createdAt: String? = null,
+    @SerializedName("__v") val v: Int? = null,
+    val totalPurchase: Double? = null,
+    @SerializedName("purchaseHistory") val purchaseHistory: List<PurchaseHistoryDto>? = null
 )
+
+data class VisitHistoryDto(
+    val condition: String?,
+    val recordedAt: String?
+)
+
+data class ConditionHistoryDto(
+    val condition: String?,
+    val recordedAt: String?
+)
+
+data class PurchaseHistoryDto(
+    @SerializedName("_id") val id: String,
+    @SerializedName("total_price") val totalPrice: Double,
+    val createdAt: String,
+    val items: List<PurchaseItemDto> = emptyList(),
+    val condition: String?,
+    @SerializedName("conditionRecordedAt") val conditionRecordedAt: String?
+)
+
+data class PurchaseItemDto(
+    @SerializedName("product_name") val productName: String,
+    val quantity: Int,
+    val price: Double
+)
+
+data class ApiMessage(val message: String? = null)
+
+data class UpdateCustomerRequest(val name: String, val phone: String)
+
+data class UpdateCustomerResponse(val message: String? = null, val customer: CustomerDto? = null)
+
 data class SalesItem(val product_id: String, val quantity: Int, val price: Double, val name: String)
 data class SalesRequest(
     val customer_phone: String?,

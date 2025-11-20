@@ -5,14 +5,14 @@ import com.sitsofe.scanner.core.network.CustomerDto
 
 fun CustomerDto.toEntity(): CustomerEntity =
     CustomerEntity(
-        id = _id,
+        id = id,
         name = name,
         phone = phone
     )
 
 fun CustomerEntity.toDto(): CustomerDto =
     CustomerDto(
-        _id = id,
+        id = id,
         name = name,
         phone = phone
     )

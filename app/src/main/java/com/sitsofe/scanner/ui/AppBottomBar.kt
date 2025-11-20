@@ -1,9 +1,9 @@
 package com.sitsofe.scanner.ui
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.ListAlt
+import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.Icon
@@ -35,7 +35,7 @@ fun AppBottomBar(nav: NavHostController) {
         BottomItem("home", "Dashboard", Icons.Outlined.Home),
         BottomItem("shop", "Shop", Icons.Outlined.ShoppingCart),
         BottomItem("inventory", "Inventory", Icons.Outlined.ListAlt),
-        BottomItem("account", "Account", Icons.Outlined.AccountCircle),
+        BottomItem("customers", "Customers", Icons.Outlined.People),
         BottomItem("settings", "Settings", Icons.Outlined.Settings),
     )
 

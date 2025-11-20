@@ -28,6 +28,10 @@ import com.sitsofe.scanner.feature.checkout.CheckoutScreen
 import com.sitsofe.scanner.feature.checkout.CheckoutViewModel
 import com.sitsofe.scanner.feature.dashboard.DashboardScreen
 import com.sitsofe.scanner.feature.dashboard.DashboardViewModel
+import com.sitsofe.scanner.feature.customers.CustomerDetailScreen
+import com.sitsofe.scanner.feature.customers.CustomersScreen
+import com.sitsofe.scanner.feature.customers.CustomersVMFactory
+import com.sitsofe.scanner.feature.customers.CustomersViewModel
 import com.sitsofe.scanner.feature.products.ProductsScreen
 import com.sitsofe.scanner.feature.products.ProductsVMFactory
 import com.sitsofe.scanner.feature.products.ProductsViewModel
@@ -39,6 +43,7 @@ import com.sitsofe.scanner.ui.AppTopBar
 class MainActivity : ComponentActivity() {
 
     private val productsVM: ProductsViewModel by viewModels { ProductsVMFactory(this) }
+    private val customersVM: CustomersViewModel by viewModels { CustomersVMFactory(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,9 +81,10 @@ class MainActivity : ComponentActivity() {
                 val nav = rememberNavController()
                 val backEntry by nav.currentBackStackEntryAsState()
                 val route = backEntry?.destination?.route ?: "shop"
-                val topLevelRoutes = remember { setOf("home", "shop", "inventory", "account", "settings") }
+                val topLevelRoutes = remember { setOf("home", "shop", "inventory", "customers", "settings") }
                 val normalizedRoute = route.substringBefore('/')
-                val isTopLevelDestination = normalizedRoute in topLevelRoutes
+                val isCustomersDetail = route.startsWith("customers/")
+                val isTopLevelDestination = normalizedRoute in topLevelRoutes && !isCustomersDetail
                 val canGoBack = nav.previousBackStackEntry != null && !isTopLevelDestination
                 val cartCount by productsVM.cartCount.collectAsState(initial = 0)
 
@@ -94,7 +100,8 @@ class MainActivity : ComponentActivity() {
                     route.startsWith("shop") -> "Products" to true
                     route == "home" -> "Dashboard" to false
                     route == "inventory" -> "Inventory" to false
-                    route == "account" -> "Account" to false
+                    route == "customers" -> "Customers" to false
+                    route.startsWith("customers/") -> "Customer Details" to false
                     route == "settings" -> "Settings" to false
                     else -> "Sitsofe" to false
                 }
@@ -139,7 +146,23 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable("inventory") { SimpleCenterText(padding, "Inventory") }
-                        composable("account") { SimpleCenterText(padding, "Account") }
+                        composable("customers") {
+                            CustomersScreen(
+                                vm = customersVM,
+                                onOpenDetail = { nav.navigate("customers/$it") },
+                                outerPadding = padding
+                            )
+                        }
+
+                        composable("customers/{id}") { backStack ->
+                            val id = backStack.arguments?.getString("id") ?: return@composable
+                            CustomerDetailScreen(
+                                vm = customersVM,
+                                customerId = id,
+                                onBack = { nav.popBackStack() },
+                                outerPadding = padding
+                            )
+                        }
 
                         composable("settings") {
                             val svm = remember { SettingsViewModel(applicationContext) }

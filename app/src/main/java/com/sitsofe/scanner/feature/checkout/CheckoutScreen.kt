@@ -164,7 +164,7 @@ fun CheckoutScreen(
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                             userScrollEnabled = true
                         ) {
-                            items(filtered, key = { it._id }) { c ->
+                            items(filtered, key = { it.id }) { c ->
                                 Row(
                                     Modifier
                                         .fillMaxWidth()
