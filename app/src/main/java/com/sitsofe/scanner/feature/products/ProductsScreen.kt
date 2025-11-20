@@ -35,7 +35,6 @@ fun ProductsScreen(
         vm.onVisible()
     }
 
-    // Auto scanner (uses vendor broadcast if available)
     val provider = remember { ScannerFactory(ctx).create(ScannerMode.AUTO) }
     DisposableEffect(provider) {
         provider.start { code -> vm.addByBarcode(code) }
@@ -61,17 +60,30 @@ fun ProductsScreen(
                 .fillMaxSize()
                 .padding(outerPadding)
                 .padding(inside)
-                .padding(12.dp)
+                .padding(horizontal = 12.dp)
+                .padding(top = 4.dp, bottom = 4.dp)
         ) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 OutlinedTextField(
                     value = vm.query,
                     onValueChange = { vm.onQueryChange(it) },
-                    label = { Text("Search for products…") },
+                    placeholder = { Text("Search for products…") },
                     singleLine = true,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier
+                        .weight(1f)
+                        .heightIn(min = 48.dp),
+                    textStyle = MaterialTheme.typography.bodyMedium
                 )
-                Button(onClick = { cameraOpen = !cameraOpen }) {
+                Button(
+                    onClick = { cameraOpen = !cameraOpen },
+                    modifier = Modifier.height(48.dp)
+                ) {
                     Text(if (cameraOpen) "Close" else "Scan")
                 }
             }
@@ -123,7 +135,6 @@ fun ProductsScreen(
                     Divider()
                 }
 
-                    // Loading / error footers
                     if (lazyItems.loadState.refresh is LoadState.Loading) {
                         item { CircularProgressIndicator(Modifier.padding(16.dp)) }
                     }

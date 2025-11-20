@@ -31,7 +31,6 @@ import com.sitsofe.scanner.feature.dashboard.DashboardViewModel
 import com.sitsofe.scanner.feature.products.ProductsScreen
 import com.sitsofe.scanner.feature.products.ProductsVMFactory
 import com.sitsofe.scanner.feature.products.ProductsViewModel
-import com.sitsofe.scanner.feature.settings.LogoutAction
 import com.sitsofe.scanner.feature.settings.SettingsScreen
 import com.sitsofe.scanner.feature.settings.SettingsViewModel
 import com.sitsofe.scanner.ui.AppBottomBar
@@ -146,15 +145,9 @@ class MainActivity : ComponentActivity() {
                             val svm = remember { SettingsViewModel(applicationContext) }
                             SettingsScreen(
                                 vm = svm,
-                                onActionDone = { action ->
+                                onLogout = {
                                     productsVM.clearCart()
-
-                                    if (action == LogoutAction.SWITCH) {
-                                        lastEmailPrefill = SessionPrefs.getLastEmail(applicationContext)
-                                    } else {
-                                        lastEmailPrefill = null
-                                    }
-
+                                    lastEmailPrefill = null
                                     loggedIn = false
                                 }
                             )

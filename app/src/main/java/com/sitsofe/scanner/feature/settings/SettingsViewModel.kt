@@ -35,13 +35,4 @@ class SettingsViewModel(private val appContext: Context) : ViewModel() {
         Auth.updateFrom(null)
     }
 
-    fun switchAccount(preserveEmail: String?) {
-        try { ServiceLocator.db(appContext).clearAllTables() }
-        catch (t: Throwable) { Timber.w(t, "clearAllTables failed (continuing switchAccount)") }
-
-        val last = preserveEmail?.trim().orEmpty()
-        SessionPrefs.clear(appContext)
-        if (last.isNotEmpty()) SessionPrefs.setLastEmail(appContext, last)
-        Auth.updateFrom(null)
-    }
 }

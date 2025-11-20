@@ -32,7 +32,7 @@ data class BottomItem(
 @Composable
 fun AppBottomBar(nav: NavHostController) {
     val items = listOf(
-        BottomItem("home", "Home", Icons.Outlined.Home),
+        BottomItem("home", "Dashboard", Icons.Outlined.Home),
         BottomItem("shop", "Shop", Icons.Outlined.ShoppingCart),
         BottomItem("inventory", "Inventory", Icons.Outlined.ListAlt),
         BottomItem("account", "Account", Icons.Outlined.AccountCircle),
